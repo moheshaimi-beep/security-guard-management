@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none">
+  <!-- Background -->
+  <rect width="180" height="180" rx="20" fill="#2563eb"/>
+  
+  <!-- Shield -->
+  <path d="M90 35C75 35 60 42 45 52C45 95 55 140 90 170C125 140 135 95 135 52C120 42 105 35 90 35Z" fill="#ffffff"/>
+  
+  <!-- Inner Shield -->
+  <path d="M90 50C80 50 70 54 60 62C60 92 68 125 90 150C112 125 120 92 120 62C110 54 100 50 90 50Z" fill="#2563eb"/>
+  
+  <!-- SGM Text -->
+  <text x="90" y="105" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-weight="bold" font-size="24">SGM</text>
+  
+  <!-- Security dot -->
+  <circle cx="90" cy="75" r="4" fill="#ffffff" opacity="0.8"/>
+</svg>

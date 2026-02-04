@@ -1,0 +1,93 @@
+{
+  "name": "Security Guard Management Dashboard",
+  "short_name": "SGM Dashboard",
+  "description": "Plateforme complète de gestion des agents de sécurité et des événements",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "fr-FR",
+  "categories": [
+    "business",
+    "productivity",
+    "security"
+  ],
+  "icons": [
+    {
+      "src": "/favicon-16.svg",
+      "sizes": "16x16",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-32.svg", 
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-180.svg",
+      "sizes": "180x180", 
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Accueil",
+      "description": "Tableau de bord principal",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/favicon-32.svg",
+          "sizes": "32x32"
+        }
+      ]
+    },
+    {
+      "name": "Suivi Agents",
+      "short_name": "GPS", 
+      "description": "Carte de suivi des agents",
+      "url": "/agent-tracking",
+      "icons": [
+        {
+          "src": "/favicon-32.svg",
+          "sizes": "32x32"
+        }
+      ]
+    },
+    {
+      "name": "Check-In",
+      "short_name": "Pointage",
+      "description": "Système de pointage",
+      "url": "/checkin-v2",
+      "icons": [
+        {
+          "src": "/favicon-32.svg", 
+          "sizes": "32x32"
+        }
+      ]
+    },
+    {
+      "name": "Événements",
+      "short_name": "Events",
+      "description": "Gestion des événements",
+      "url": "/events",
+      "icons": [
+        {
+          "src": "/favicon-32.svg",
+          "sizes": "32x32"
+        }
+      ]
+    }
+  ]
+}

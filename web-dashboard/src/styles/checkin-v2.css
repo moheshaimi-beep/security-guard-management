@@ -1,0 +1,130 @@
+/* CheckIn V2 - Animations et styles additionnels */
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes glow-green {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+}
+
+@keyframes glow-blue {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+.checkin-card-animation {
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+.checkin-header-animation {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.checkin-pulse {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.checkin-glow-green {
+  animation: glow-green 2s infinite;
+}
+
+.checkin-glow-blue {
+  animation: glow-blue 2s infinite;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .checkin-container {
+    padding: 0.5rem;
+  }
+
+  .checkin-video {
+    aspect-ratio: 1 / 1 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .checkin-button {
+    font-size: 0.875rem;
+    padding: 0.75rem !important;
+  }
+
+  .checkin-header {
+    padding: 0.75rem 1rem !important;
+  }
+}
+
+/* Touch improvements */
+@media (hover: none) and (pointer: coarse) {
+  button {
+    padding: 1rem !important;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .checkin-card {
+    padding: 1rem !important;
+  }
+}
+
+/* Smooth transitions */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, input, textarea {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.no-scroll {
+  overflow: hidden !important;
+}
+
+/* Video element optimization */
+video {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Safe area for notch devices */
+.safe-area {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}

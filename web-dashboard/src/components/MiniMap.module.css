@@ -1,0 +1,399 @@
+/* ============================================================================
+   LEAFLET CONTAINER
+   ============================================================================ */
+.leaflet_container {
+  height: 100% !important;
+  width: 100% !important;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.leaflet_tile_pane {
+  filter: brightness(0.98) contrast(1.05);
+}
+
+.leaflet_control_zoom {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px);
+}
+
+.leaflet_control_zoom_in,
+.leaflet_control_zoom_out {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.leaflet_control_zoom_in:hover,
+.leaflet_control_zoom_out:hover {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.leaflet_control_zoom_in:active,
+.leaflet_control_zoom_out:active {
+  transform: translateY(1px);
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+@keyframes pulse_ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse_dot {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+@keyframes slide_up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade_in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+}
+
+/* ============================================================================
+   USER MARKER
+   ============================================================================ */
+.user_marker_wrapper {
+  position: relative;
+}
+
+.user_pulse_outer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  background: #3b82f6;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.2;
+  animation: pulse_ring 2s infinite;
+}
+
+.user_pulse_inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  background: #3b82f6;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.3;
+  animation: pulse_ring 2s 0.5s infinite;
+}
+
+.user_marker_circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: 3px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+   EVENT MARKER
+   ============================================================================ */
+.event_marker_wrapper {
+  position: relative;
+}
+
+.event_pulse_outer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.2;
+  animation: pulse_ring 2.5s infinite;
+}
+
+.event_pulse_inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: #8b5cf6;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.3;
+  animation: pulse_ring 2.5s 0.7s infinite;
+}
+
+.event_marker_circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 3px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.event_marker_circle:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+}
+
+.event_marker_circle:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+/* ============================================================================
+   TARGET MARKER
+   ============================================================================ */
+.target_marker_wrapper {
+  position: relative;
+}
+
+.target_pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  border: 2px solid #ef4444;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.3;
+  animation: pulse_ring 2s infinite;
+}
+
+.target_marker_circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: 3px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+   BUTTONS & CONTROLS
+   ============================================================================ */
+.locate_button {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 999;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(229, 231, 235, 1);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.locate_button:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(239, 246, 255, 0.98) 100%);
+  border-color: rgba(147, 197, 253, 1);
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+}
+
+.locate_button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================================
+   PANELS - GLASSMORPHISM EFFECT
+   ============================================================================ */
+.info_panel {
+  animation: slide_up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.info_panel.route {
+  background: linear-gradient(
+    135deg,
+    rgba(239, 246, 255, 0.98) 0%,
+    rgba(240, 249, 255, 0.98) 100%
+  );
+  border-color: rgba(191, 219, 254, 0.8);
+}
+
+.info_panel.event {
+  background: linear-gradient(
+    135deg,
+    rgba(250, 245, 255, 0.98) 0%,
+    rgba(252, 240, 255, 0.98) 100%
+  );
+  border-color: rgba(233, 213, 255, 0.8);
+}
+
+.info_panel.events_list {
+  background: linear-gradient(
+    135deg,
+    rgba(238, 246, 255, 0.98) 0%,
+    rgba(240, 249, 255, 0.98) 100%
+  );
+  border-color: rgba(199, 210, 254, 0.8);
+}
+
+/* ============================================================================
+   INFO CARDS
+   ============================================================================ */
+.info_card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(4px);
+}
+
+.info_card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.info_card.blue {
+  border: 1px solid rgba(191, 219, 254, 0.8);
+}
+
+.info_card.blue:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
+  border-color: rgba(147, 197, 253, 1);
+}
+
+.info_card.green {
+  border: 1px solid rgba(134, 239, 172, 0.8);
+}
+
+.info_card.green:hover {
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.15);
+  border-color: rgba(86, 180, 137, 1);
+}
+
+.info_card.purple {
+  border: 1px solid rgba(216, 180, 254, 0.8);
+}
+
+.info_card.purple:hover {
+  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.15);
+  border-color: rgba(196, 181, 253, 1);
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+@media (max-width: 768px) {
+  .info_panel {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .info_card {
+    padding: 10px;
+    font-size: 0.875rem;
+    gap: 6px;
+  }
+
+  .locate_button {
+    bottom: 0.75rem;
+    right: 0.75rem;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .info_card {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+
+  .info_panel {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .locate_button {
+    bottom: 0.5rem;
+    right: 0.5rem;
+    padding: 8px;
+  }
+}

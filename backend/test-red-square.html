@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Carré Rouge</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f0f0f0;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .test-section { 
+            margin: 30px 0; 
+            padding: 20px; 
+            border: 3px solid #333; 
+            background: #fafafa;
+        }
+        .test-image { 
+            border: 3px solid #000; 
+            margin: 10px;
+            display: inline-block;
+        }
+        .info { 
+            background: #e8f4ff; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-left: 5px solid #007bff;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color: #dc3545;">🔴 Test Carré Rouge Très Visible</h1>
+        
+        <div class="info">
+            <h3>Informations de l'image:</h3>
+            <p><strong>Dimensions:</strong> 200x200 pixels</p>
+            <p><strong>Contenu:</strong> Carré rouge uni (impossible à louper!)</p>
+            <p><strong>Longueur:</strong> 718 caractères</p>
+            <p><strong>Format valide:</strong> <span class="success">✅ PNG valide</span></p>
+            <p><strong>Preview:</strong> data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjw...</p>
+        </div>
+        
+        <div class="test-section">
+            <h3>🖼️ Test 1: Image dans balise IMG</h3>
+            <p>Si vous voyez un carré rouge ci-dessous, l'image fonctionne :</p>
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGSSURBVHhe7cExAQAAAMKg9U9tB2+gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAvAYBUAAB958aLgAAAABJRU5ErkJggg==" alt="Carré rouge test" class="test-image"
+                 onload="console.log('✅ Image chargée dans IMG'); document.getElementById('img-status').innerHTML='<span class=success>✅ IMAGE CHARGÉE</span>'"
+                 onerror="console.error('❌ Erreur dans IMG'); document.getElementById('img-status').innerHTML='<span class=error>❌ ERREUR IMAGE</span>'">
+            <div id="img-status" style="margin-top: 10px;">⏳ Chargement...</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎨 Test 2: Image en arrière-plan CSS</h3>
+            <p>Même image en background CSS :</p>
+            <div class="test-image" style="width: 200px; height: 200px;
+                        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6eAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAGSSURBVHhe7cExAQAAAMKg9U9tB2+gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAvAYBUAAB958aLgAAAABJRU5ErkJggg==');
+                        background-size: contain; 
+                        background-repeat: no-repeat; 
+                        background-position: center;
+                        background-color: #ccc;">
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Instructions:</h3>
+            <ol>
+                <li><strong>Si vous voyez des carrés rouges ci-dessus</strong> → L'image base64 fonctionne parfaitement</li>
+                <li><strong>Actualisez votre page</strong> http://localhost:3000/attendance-verification</li>
+                <li><strong>Regardez la section "Vérification d'identité"</strong></li>
+                <li><strong>Vous devriez maintenant voir un carré rouge</strong> dans "Photo de pointage"</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        console.log('🔴 Test carré rouge - si vous voyez des logs de succès, l\'image fonctionne!');
+    </script>
+</body>
+</html>

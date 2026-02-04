@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Background -->
+  <rect width="32" height="32" rx="4" fill="#2563eb"/>
+  
+  <!-- Shield -->
+  <path d="M16 6C13 6 10 7 7 9C7 17 9 25 16 30C23 25 25 17 25 9C22 7 19 6 16 6Z" fill="#ffffff"/>
+  
+  <!-- Inner Shield -->
+  <path d="M16 9C14 9 12 10 10 11C10 16.5 11.5 22 16 26C20.5 22 22 16.5 22 11C20 10 18 9 16 9Z" fill="#2563eb"/>
+  
+  <!-- S Letter -->
+  <text x="16" y="19" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-weight="bold" font-size="10">S</text>
+</svg>

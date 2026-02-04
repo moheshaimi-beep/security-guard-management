@@ -1,0 +1,2304 @@
+{
+  "generatedAt": "2026-02-04T17:18:10.387Z",
+  "baseUrl": "http://localhost:3000",
+  "version": "1.0.0",
+  "categories": {
+    "auth": {
+      "name": "Authentification",
+      "description": "Gestion de l'authentification et des utilisateurs",
+      "basePath": "/api/auth",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/auth/setup-admin",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/register",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/refresh-token",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/login-cin",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/verify-cin",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/facial-vector-checkin",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/logout",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/profile",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/auth/profile",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/auth/change-password",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/auth/facial-vector",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/devices",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/auth/devices/:userId",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/devices/add",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/devices/remove",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/auth/devices/check",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "auth.js"
+        }
+      ],
+      "count": 17
+    },
+    "users": {
+      "name": "Utilisateurs",
+      "description": "Gestion des utilisateurs et profils",
+      "basePath": "/api/users",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/users/check-email",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/check-cin",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/check-phone",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/search/cin/:cin",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/supervisors",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/agents",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/supervised/:id?",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/stats/:id?",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/users",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/users/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/users/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/:id/reset-password",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/users/:id/facial-vector",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "users.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/users/:id/facial-vector",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "users.js"
+        }
+      ],
+      "count": 16
+    },
+    "events": {
+      "name": "Événements",
+      "description": "Gestion des événements de sécurité",
+      "basePath": "/api/events",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/events/my-events",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "events.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/events/today",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "events.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/events",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "events.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/events/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "events.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/events/:id/stats",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "events.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/events",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "events.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/events/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "events.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/events/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "events.js"
+        }
+      ],
+      "count": 8
+    },
+    "assignments": {
+      "name": "Affectations",
+      "description": "Affectation des agents aux événements",
+      "basePath": "/api/assignments",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/assignments/my-assignments",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "assignments.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/assignments/:id/respond",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "assignments.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/assignments",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "assignments.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/assignments/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "assignments.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/assignments",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "assignments.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/assignments/bulk",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "assignments.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/assignments/bulk-confirm",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "assignments.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/assignments/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "assignments.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/assignments/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "assignments.js"
+        }
+      ],
+      "count": 9
+    },
+    "attendance": {
+      "name": "Pointage",
+      "description": "Gestion du pointage des agents",
+      "basePath": "/api/attendance",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/attendance/device-info/current",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/attendance/check-in",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/attendance/check-out/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/attendance/my-attendance",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/attendance/today-status",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/attendance/stats",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/attendance/update-location",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/attendance",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/attendance/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/attendance/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendance.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/attendance/mark-absent",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "attendance.js"
+        }
+      ],
+      "count": 11
+    },
+    "notifications": {
+      "name": "Notifications",
+      "description": "Système de notifications",
+      "basePath": "/api/notifications",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/notifications/my-notifications",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "notifications.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/notifications/unread-count",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "notifications.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/notifications/:id/read",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "notifications.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/notifications/mark-all-read",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "notifications.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/notifications/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "notifications.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/notifications",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "notifications.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/notifications/stats",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "notifications.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/notifications/send",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "notifications.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/notifications/broadcast",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "notifications.js"
+        }
+      ],
+      "count": 9
+    },
+    "reports": {
+      "name": "Rapports",
+      "description": "Génération de rapports",
+      "basePath": "/api/reports",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/reports/dashboard",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "reports.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/reports/attendance-trends",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "reports.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/reports/attendance/pdf",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "reports.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/reports/attendance/excel",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "reports.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/reports/agent/:agentId",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "reports.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/reports/activity-logs",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "reports.js"
+        }
+      ],
+      "count": 6
+    },
+    "incidents": {
+      "name": "Incidents",
+      "description": "Signalement et gestion des incidents",
+      "basePath": "/api/incidents",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/incidents",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "incidents.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/incidents/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "incidents.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/incidents",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "incidents.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/incidents/report",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "incidents.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/incidents/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "incidents.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/incidents/stats/summary",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "incidents.js"
+        }
+      ],
+      "count": 6
+    },
+    "badges": {
+      "name": "Badges",
+      "description": "Système de badges et récompenses",
+      "basePath": "/api/badges",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/badges",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "badges.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/badges/user/:userId",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "badges.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/badges/my",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "badges.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/badges",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "badges.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/badges/award",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "badges.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/badges/revoke/:userId/:badgeId",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "badges.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/badges/leaderboard",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "badges.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/badges/seed",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "badges.js"
+        }
+      ],
+      "count": 8
+    },
+    "documents": {
+      "name": "Documents",
+      "description": "Gestion des documents",
+      "basePath": "/api/documents",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/documents/types",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "documents.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/documents/user/:userId",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "documents.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/documents/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "documents.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/documents/:id/download",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "documents.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/documents/user/:userId",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "documents.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/documents/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "documents.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/documents/:id/verify",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "documents.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/documents/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "documents.js"
+        }
+      ],
+      "count": 8
+    },
+    "tracking": {
+      "name": "Géolocalisation",
+      "description": "Suivi GPS des agents",
+      "basePath": "/api/tracking",
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/tracking/location",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "tracking.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/tracking/validate",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "tracking.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/tracking/user/:userId/history",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "tracking.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/tracking/event/:eventId/live",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "tracking.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/tracking/all/live",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "tracking.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/tracking/realtime/:eventId",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "tracking.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/tracking/alerts",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "tracking.js"
+        },
+        {
+          "method": "PATCH",
+          "path": "/api/tracking/alerts/:alertId/resolve",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "tracking.js"
+        }
+      ],
+      "count": 8
+    },
+    "messages": {
+      "name": "Messages",
+      "description": "Messagerie interne",
+      "basePath": "/api/messages",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/messages/conversations",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "messages.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/messages/conversations/direct",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "messages.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/messages/conversation/:conversationId",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "messages.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/messages/send",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "messages.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/messages/send-file",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "messages.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/messages/broadcast",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "messages.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/messages/:messageId/read",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "messages.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/messages/all",
+          "requiresAuth": false,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "messages.js"
+        }
+      ],
+      "count": 8
+    },
+    "quickAdd": {
+      "name": "Ajout Rapide",
+      "description": "Ajout rapide d'agents",
+      "basePath": "/api/quick-add",
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/quick-add/agent",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "quickAdd.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/quick-add/pending",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "quickAdd.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/quick-add/validate/:agentId",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "quickAdd.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/quick-add/stats",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "quickAdd.js"
+        }
+      ],
+      "count": 4
+    },
+    "sos": {
+      "name": "SOS",
+      "description": "Alertes d'urgence SOS",
+      "basePath": "/api/sos",
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/sos/trigger",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "sos.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/sos/active",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "sos.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/sos/:alertId/acknowledge",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "sos.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/sos/:alertId/respond",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "sos.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/sos/:alertId/resolve",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "sos.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/sos/history",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "sos.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/sos/stats",
+          "requiresAuth": false,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "sos.js"
+        }
+      ],
+      "count": 7
+    },
+    "permissions": {
+      "name": "Permissions",
+      "description": "Système de permissions",
+      "basePath": "/api/permissions",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/permissions/my",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "permissions.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/permissions/initialize",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "permissions.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/permissions",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "permissions.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/permissions/roles",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "permissions.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/permissions/role/:role",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "permissions.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/permissions/role/:role",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "permissions.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/permissions/user/:userId",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "permissions.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/permissions/user/:userId",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "permissions.js"
+        }
+      ],
+      "count": 8
+    },
+    "zones": {
+      "name": "Zones",
+      "description": "Gestion des zones géographiques",
+      "basePath": "/api/zones",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/zones/event/:eventId",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "zones.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/zones/event/:eventId/stats",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "zones.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/zones/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "zones.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/zones",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "zones.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/zones/bulk",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "zones.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/zones/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "zones.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/zones/:id",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "zones.js"
+        }
+      ],
+      "count": 7
+    },
+    "supervisor": {
+      "name": "Superviseurs",
+      "description": "Gestion des superviseurs",
+      "basePath": "/api/supervisor",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/supervisor/check-cin/:cin",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "supervisor.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/supervisor/create-agent",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "supervisor.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/supervisor/agents",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "supervisor.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/supervisor/agents/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "supervisor.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/supervisor/managed-zones",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "supervisor.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/supervisor/managed-events",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "supervisor.js"
+        }
+      ],
+      "count": 6
+    },
+    "maintenance": {
+      "name": "Maintenance",
+      "description": "Outils de maintenance système",
+      "basePath": "/api/maintenance",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/maintenance/database/stats",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "maintenance.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/maintenance/cleanup/deleted-users",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "maintenance.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/maintenance/sync/force",
+          "requiresAuth": false,
+          "roles": [
+            "admin"
+          ],
+          "file": "maintenance.js"
+        }
+      ],
+      "count": 3
+    },
+    "creationHistory": {
+      "name": "Historique",
+      "description": "Historique de création des agents",
+      "basePath": "/api/creation-history",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/creation-history/agents",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "creationHistory.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/creation-history/agents/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "creationHistory.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/creation-history/stats",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "creationHistory.js"
+        }
+      ],
+      "count": 3
+    },
+    "adminNotifications": {
+      "name": "Notifications Admin",
+      "description": "Gestion avancée des notifications",
+      "basePath": "/api/admin-notifications",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/admin-notifications/dashboard",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/admin-notifications/test",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin-notifications/types",
+          "requiresAuth": false,
+          "roles": [
+            "admin"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/admin-notifications/verify-cins",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin-notifications",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/admin-notifications/send",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/admin-notifications/bulk",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/admin-notifications/:id/retry",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin-notifications/users/:userId/preferences",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "PUT",
+          "path": "/api/admin-notifications/users/:userId/preferences",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "adminNotifications.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/admin-notifications/users/:userId/history",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "adminNotifications.js"
+        }
+      ],
+      "count": 11
+    },
+    "audit": {
+      "name": "Audit",
+      "description": "Logs d'audit et traçabilité",
+      "basePath": "/api/audit",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/audit",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "audit.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/audit/stats",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "audit.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/audit/types",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "audit.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/audit/export",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "audit.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/audit/purge",
+          "requiresAuth": false,
+          "roles": [
+            "admin"
+          ],
+          "file": "audit.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/audit/bulk",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "audit.js"
+        }
+      ],
+      "count": 6
+    },
+    "analytics": {
+      "name": "Analytique",
+      "description": "Analyses et statistiques avancées",
+      "basePath": "/api/analytics",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/analytics/dashboard",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "analyticsRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/agents/:agentId/patterns",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "analyticsRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/agents/:agentId/risk",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "analyticsRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/agents/at-risk",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "analyticsRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/analytics/agents/compare",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "analyticsRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/incidents/hotspots",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "analyticsRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/events/:eventId/staffing",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "analyticsRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/attendance/trends",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "analyticsRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/analytics/reports/performance",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "analyticsRoutes.js"
+        }
+      ],
+      "count": 9
+    },
+    "faceRecognition": {
+      "name": "Reconnaissance Faciale",
+      "description": "Système de reconnaissance faciale",
+      "basePath": "/api/face-recognition",
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/face-recognition/initialize",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/face-recognition/register",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/face-recognition/verify",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/face-recognition/identify",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/face-recognition/detect",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/face-recognition/registration/:userId",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/face-recognition/stats",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/face-recognition/anomalies",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/face-recognition/export",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/face-recognition/import",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/face-recognition/threshold",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "faceRecognitionRoutes.js"
+        }
+      ],
+      "count": 11
+    },
+    "databaseBackup": {
+      "name": "Sauvegardes",
+      "description": "Sauvegardes de base de données",
+      "basePath": "/api/database-backup",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/database-backup/info",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/database-backup/validate",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/database-backup/backup",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/database-backup/verify/:filename",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/database-backup/backups",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/database-backup/download/:filename",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/database-backup/delete/:filename",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/database-backup/restore",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/database-backup/restore/upload",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/database-backup/scheduled",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/database-backup/scheduled",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/database-backup/cleanup",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/database-backup/run-scheduled",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "databaseBackup.js"
+        }
+      ],
+      "count": 13
+    },
+    "map": {
+      "name": "Carte",
+      "description": "Services de cartographie",
+      "basePath": "/api/map",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/map/events",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "mapRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/map/agents",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "mapRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/map/events/:id",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "mapRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/map/stats",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "mapRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/map/nearby",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "mapRoutes.js"
+        }
+      ],
+      "count": 5
+    },
+    "whatsapp": {
+      "name": "WhatsApp",
+      "description": "Intégration WhatsApp",
+      "basePath": "/api/whatsapp",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/whatsapp/status",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "whatsappRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/whatsapp/qrcode",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "whatsappRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/whatsapp/init",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "whatsappRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/whatsapp/test",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "whatsappRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/whatsapp/notify/assignment",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "whatsappRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/whatsapp/notify/checkin-reminder",
+          "requiresAuth": true,
+          "roles": [
+            "admin"
+          ],
+          "file": "whatsappRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/whatsapp/notify/weekly-schedules",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "whatsappRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/whatsapp/notify/daily-report",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "whatsappRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/whatsapp/alert/sos",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "whatsappRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/whatsapp/broadcast",
+          "requiresAuth": true,
+          "roles": [
+            "admin",
+            "supervisor"
+          ],
+          "file": "whatsappRoutes.js"
+        }
+      ],
+      "count": 10
+    },
+    "diagnostic": {
+      "name": "Diagnostic",
+      "description": "Outils de diagnostic système",
+      "basePath": "/api/diagnostic",
+      "routes": [
+        {
+          "method": "GET",
+          "path": "/api/diagnostic/check-system",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "diagnostic.js"
+        }
+      ],
+      "count": 1
+    },
+    "attendanceDuplicate": {
+      "name": "Anti-Doublons",
+      "description": "Détection de doublons de pointage",
+      "basePath": "/api/attendance-duplicate",
+      "routes": [
+        {
+          "method": "POST",
+          "path": "/api/attendance-duplicate/check-in-secure",
+          "requiresAuth": true,
+          "roles": [
+            "authenticated"
+          ],
+          "file": "attendanceDuplicateRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/attendance-duplicate/status",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendanceDuplicateRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/attendance-duplicate/with-source",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendanceDuplicateRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/attendance-duplicate/duplicate-report",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendanceDuplicateRoutes.js"
+        },
+        {
+          "method": "POST",
+          "path": "/api/attendance-duplicate/bulk-check-status",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendanceDuplicateRoutes.js"
+        },
+        {
+          "method": "GET",
+          "path": "/api/attendance-duplicate/source-stats",
+          "requiresAuth": false,
+          "roles": [
+            "public"
+          ],
+          "file": "attendanceDuplicateRoutes.js"
+        }
+      ],
+      "count": 6
+    }
+  },
+  "totalRoutes": 224
+}

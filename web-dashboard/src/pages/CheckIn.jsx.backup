@@ -1,0 +1,844 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  FiCamera, FiMapPin, FiCheck, FiX, FiAlertCircle, FiRefreshCw,
+  FiLogOut, FiClock, FiCheckCircle, FiLoader, FiUser, FiNavigation,
+  FiSmartphone, FiShield, FiSun, FiEye, FiZap
+} from 'react-icons/fi';
+import { authAPI, attendanceAPI } from '../services/api';
+import { toast } from 'react-toastify';
+import { getDeviceFingerprint, getDeviceInfo } from '../utils/deviceFingerprint';
+import * as faceapi from 'face-api.js';
+
+// Configuration
+const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+const MATCH_THRESHOLD = 0.55;
+const MIN_ACCURACY = 100;
+const QUALITY_THRESHOLD = 75;
+const STABILITY_TIME = 1500;
+
+// Seuils de qualite
+const QUALITY_THRESHOLDS = {
+  minFaceSize: 120,
+  maxFaceSize: 350,
+  minConfidence: 0.85,
+  centerTolerance: 0.25,
+};
+
+/**
+ * Page de pointage mobile optimisee
+ * Design moderne avec reconnaissance faciale style creation utilisateur
+ */
+const CheckIn = () => {
+  const navigate = useNavigate();
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+  const animationRef = useRef(null);
+  const stabilityTimerRef = useRef(null);
+  const lastPositionsRef = useRef([]);
+
+  // Etats utilisateur
+  const [user, setUser] = useState(null);
+  const [storedDescriptor, setStoredDescriptor] = useState(null);
+
+  // Etats des validations
+  const [validations, setValidations] = useState({
+    facial: { status: 'pending', message: 'En attente' },
+    location: { status: 'pending', message: 'En attente' },
+    device: { status: 'success', message: 'OK' }
+  });
+
+  // Etats reconnaissance faciale
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [faceDetected, setFaceDetected] = useState(false);
+  const [quality, setQuality] = useState(null);
+  const [matchScore, setMatchScore] = useState(0);
+  const [isMatched, setIsMatched] = useState(false);
+  const [feedback, setFeedback] = useState([]);
+  const [captureProgress, setCaptureProgress] = useState(0);
+  const [facialVerified, setFacialVerified] = useState(false);
+
+  // Etats geolocalisation
+  const [location, setLocation] = useState(null);
+  const [locationAccuracy, setLocationAccuracy] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+
+  // Etats appareil
+  const [deviceInfo, setDeviceInfo] = useState(null);
+  const [deviceFingerprint, setDeviceFingerprint] = useState(null);
+
+  // Etat pointage
+  const [submitting, setSubmitting] = useState(false);
+  const [checkInSuccess, setCheckInSuccess] = useState(false);
+  const [checkInType, setCheckInType] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Horloge temps reel
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Charger l'utilisateur
+  useEffect(() => {
+    const loadUser = async () => {
+      const checkInToken = localStorage.getItem('checkInToken');
+      const checkInUser = localStorage.getItem('checkInUser');
+
+      if (!checkInToken || !checkInUser) {
+        toast.error('Session expiree. Veuillez vous reconnecter.');
+        navigate('/login');
+        return;
+      }
+
+      try {
+        const userData = JSON.parse(checkInUser);
+        setUser(userData);
+
+        // Charger le vecteur facial
+        const response = await authAPI.getFacialVectorForCheckIn();
+        if (response.data.success && response.data.data.facialVector) {
+          setStoredDescriptor(new Float32Array(response.data.data.facialVector));
+        } else {
+          toast.error('Vecteur facial non configure');
+        }
+      } catch (error) {
+        console.error('Erreur chargement utilisateur:', error);
+        toast.error('Erreur de session');
+        navigate('/login');
+      }
+    };
+
+    loadUser();
+  }, [navigate]);
+
+  // Charger les modeles face-api
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        setModelsLoading(true);
+        await Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+          faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+        ]);
+        setModelsLoaded(true);
+      } catch (error) {
+        console.error('Erreur chargement modeles:', error);
+        toast.error('Erreur chargement reconnaissance faciale');
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+    loadModels();
+  }, []);
+
+  // Initialiser appareil
+  useEffect(() => {
+    const initDevice = async () => {
+      const fingerprint = await getDeviceFingerprint();
+      const info = getDeviceInfo();
+      setDeviceFingerprint(fingerprint);
+      setDeviceInfo(info);
+    };
+    initDevice();
+  }, []);
+
+  // Geolocalisation
+  const requestLocation = useCallback(() => {
+    setLocationLoading(true);
+    setValidations(prev => ({
+      ...prev,
+      location: { status: 'loading', message: 'Acquisition GPS...' }
+    }));
+
+    if (!navigator.geolocation) {
+      setValidations(prev => ({
+        ...prev,
+        location: { status: 'error', message: 'GPS non supporte' }
+      }));
+      setLocationLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        setLocation({ latitude, longitude });
+        setLocationAccuracy(accuracy);
+        setLocationLoading(false);
+
+        setValidations(prev => ({
+          ...prev,
+          location: {
+            status: accuracy <= MIN_ACCURACY ? 'success' : 'warning',
+            message: `Position OK (${Math.round(accuracy)}m)`
+          }
+        }));
+      },
+      (error) => {
+        setLocationLoading(false);
+        let message = 'Erreur GPS';
+        if (error.code === error.PERMISSION_DENIED) message = 'Acces GPS refuse';
+        else if (error.code === error.POSITION_UNAVAILABLE) message = 'Position indisponible';
+        else if (error.code === error.TIMEOUT) message = 'Delai depasse';
+
+        setValidations(prev => ({
+          ...prev,
+          location: { status: 'error', message }
+        }));
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  }, []);
+
+  // Demander localisation au chargement
+  useEffect(() => {
+    requestLocation();
+  }, [requestLocation]);
+
+  // Demarrer camera
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 640 } }
+      });
+
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      setCameraActive(true);
+      setValidations(prev => ({
+        ...prev,
+        facial: { status: 'loading', message: 'Detection...' }
+      }));
+    } catch (error) {
+      toast.error('Impossible d\'acceder a la camera');
+      setValidations(prev => ({
+        ...prev,
+        facial: { status: 'error', message: 'Camera refusee' }
+      }));
+    }
+  };
+
+  // Arreter camera
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    if (stabilityTimerRef.current) {
+      clearTimeout(stabilityTimerRef.current);
+    }
+    setCameraActive(false);
+  }, []);
+
+  // Analyser qualite
+  const analyzeQuality = useCallback((detection, videoWidth, videoHeight) => {
+    const { box, score } = detection.detection;
+    const factors = {};
+
+    // Score taille
+    const sizeOk = box.width >= QUALITY_THRESHOLDS.minFaceSize && box.width <= QUALITY_THRESHOLDS.maxFaceSize;
+    const sizeScore = sizeOk ? 100 : box.width < QUALITY_THRESHOLDS.minFaceSize
+      ? (box.width / QUALITY_THRESHOLDS.minFaceSize) * 100
+      : (QUALITY_THRESHOLDS.maxFaceSize / box.width) * 100;
+    factors.size = { score: Math.min(100, sizeScore), ok: sizeOk };
+
+    // Score confiance
+    const confidenceScore = score * 100;
+    factors.confidence = { score: confidenceScore, ok: confidenceScore >= QUALITY_THRESHOLDS.minConfidence * 100 };
+
+    // Score position (centrage)
+    const faceCenterX = box.x + box.width / 2;
+    const faceCenterY = box.y + box.height / 2;
+    const offsetX = Math.abs(faceCenterX - videoWidth / 2) / videoWidth;
+    const offsetY = Math.abs(faceCenterY - videoHeight / 2) / videoHeight;
+    const positionScore = Math.max(0, 100 - (offsetX + offsetY) * 200);
+    factors.position = { score: positionScore, ok: positionScore > 60 };
+
+    // Score stabilite
+    const currentPos = { x: box.x, y: box.y, w: box.width };
+    lastPositionsRef.current.push(currentPos);
+    if (lastPositionsRef.current.length > 10) lastPositionsRef.current.shift();
+
+    let stabilityScore = 0;
+    if (lastPositionsRef.current.length >= 5) {
+      const positions = lastPositionsRef.current;
+      let totalMovement = 0;
+      for (let i = 1; i < positions.length; i++) {
+        totalMovement += Math.abs(positions[i].x - positions[i-1].x) +
+                         Math.abs(positions[i].y - positions[i-1].y);
+      }
+      stabilityScore = Math.max(0, Math.min(100, 100 - totalMovement / positions.length * 3));
+    }
+    factors.stability = { score: stabilityScore, ok: stabilityScore > 70 };
+
+    const overallScore = Math.round(
+      (factors.size.score * 0.25 + factors.confidence.score * 0.3 +
+       factors.position.score * 0.25 + factors.stability.score * 0.2)
+    );
+
+    return {
+      score: overallScore,
+      isGood: overallScore >= QUALITY_THRESHOLD && factors.stability.ok,
+      factors
+    };
+  }, []);
+
+  // Generer feedback
+  const generateFeedback = useCallback((quality, isMatched) => {
+    const items = [];
+
+    if (!quality) {
+      return [{ type: 'error', message: 'Positionnez votre visage', icon: FiUser }];
+    }
+
+    if (!quality.factors.size.ok) {
+      items.push({
+        type: 'warning',
+        message: quality.factors.size.score < 50 ? 'Rapprochez-vous' : 'Eloignez-vous',
+        icon: FiUser
+      });
+    }
+
+    if (!quality.factors.position.ok) {
+      items.push({ type: 'warning', message: 'Centrez votre visage', icon: FiEye });
+    }
+
+    if (!quality.factors.confidence.ok) {
+      items.push({ type: 'warning', message: 'Ameliorez l\'eclairage', icon: FiSun });
+    }
+
+    if (!quality.factors.stability.ok) {
+      items.push({ type: 'warning', message: 'Restez immobile', icon: FiZap });
+    }
+
+    if (!isMatched && quality.isGood) {
+      items.push({ type: 'error', message: 'Visage non reconnu', icon: FiAlertCircle });
+    }
+
+    if (items.length === 0 && quality.isGood && isMatched) {
+      items.push({ type: 'success', message: 'Parfait ! Maintenir...', icon: FiCheck });
+    }
+
+    return items;
+  }, []);
+
+  // Detection faciale en temps reel
+  useEffect(() => {
+    if (!cameraActive || !modelsLoaded || !storedDescriptor || !videoRef.current) return;
+
+    let isRunning = true;
+
+    const detectFace = async () => {
+      if (!isRunning || !videoRef.current || videoRef.current.paused) {
+        animationRef.current = requestAnimationFrame(detectFace);
+        return;
+      }
+
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+
+      if (!canvas || video.readyState !== 4) {
+        animationRef.current = requestAnimationFrame(detectFace);
+        return;
+      }
+
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+
+      try {
+        const detection = await faceapi
+          .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ scoreThreshold: 0.5 }))
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (detection) {
+          setFaceDetected(true);
+
+          // Calculer match
+          const distance = faceapi.euclideanDistance(detection.descriptor, storedDescriptor);
+          const score = Math.max(0, Math.min(100, (1 - distance) * 100));
+          setMatchScore(score);
+          const matched = distance < MATCH_THRESHOLD;
+          setIsMatched(matched);
+
+          // Analyser qualite
+          const qualityResult = analyzeQuality(detection, videoWidth, videoHeight);
+          setQuality(qualityResult);
+
+          // Generer feedback
+          const feedbackItems = generateFeedback(qualityResult, matched);
+          setFeedback(feedbackItems);
+
+          // Dessiner
+          const { box } = detection.detection;
+          const isGoodCapture = qualityResult.isGood && matched;
+
+          // Cadre
+          ctx.strokeStyle = isGoodCapture ? '#10B981' : matched ? '#F59E0B' : '#EF4444';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.roundRect(box.x - 10, box.y - 10, box.width + 20, box.height + 20, 20);
+          ctx.stroke();
+
+          // Coins decoratifs
+          const cornerSize = 25;
+          ctx.strokeStyle = isGoodCapture ? '#10B981' : '#6366F1';
+          ctx.lineWidth = 4;
+
+          // Coin haut-gauche
+          ctx.beginPath();
+          ctx.moveTo(box.x - 10, box.y + cornerSize);
+          ctx.lineTo(box.x - 10, box.y - 10);
+          ctx.lineTo(box.x + cornerSize, box.y - 10);
+          ctx.stroke();
+
+          // Coin haut-droit
+          ctx.beginPath();
+          ctx.moveTo(box.x + box.width - cornerSize + 10, box.y - 10);
+          ctx.lineTo(box.x + box.width + 10, box.y - 10);
+          ctx.lineTo(box.x + box.width + 10, box.y + cornerSize);
+          ctx.stroke();
+
+          // Coin bas-gauche
+          ctx.beginPath();
+          ctx.moveTo(box.x - 10, box.y + box.height - cornerSize + 10);
+          ctx.lineTo(box.x - 10, box.y + box.height + 10);
+          ctx.lineTo(box.x + cornerSize, box.y + box.height + 10);
+          ctx.stroke();
+
+          // Coin bas-droit
+          ctx.beginPath();
+          ctx.moveTo(box.x + box.width - cornerSize + 10, box.y + box.height + 10);
+          ctx.lineTo(box.x + box.width + 10, box.y + box.height + 10);
+          ctx.lineTo(box.x + box.width + 10, box.y + box.height - cornerSize + 10);
+          ctx.stroke();
+
+          // Gestion capture automatique
+          if (isGoodCapture && !facialVerified) {
+            setCaptureProgress(prev => {
+              const newProgress = Math.min(100, prev + 3);
+              if (newProgress >= 100) {
+                setFacialVerified(true);
+                setValidations(prev => ({
+                  ...prev,
+                  facial: { status: 'success', message: `Verifie (${Math.round(score)}%)` }
+                }));
+                stopCamera();
+              }
+              return newProgress;
+            });
+          } else {
+            setCaptureProgress(prev => Math.max(0, prev - 2));
+          }
+
+        } else {
+          setFaceDetected(false);
+          setQuality(null);
+          setMatchScore(0);
+          setIsMatched(false);
+          setFeedback([{ type: 'error', message: 'Aucun visage detecte', icon: FiUser }]);
+          setCaptureProgress(prev => Math.max(0, prev - 5));
+
+          // Guide vide
+          const centerX = videoWidth / 2;
+          const centerY = videoHeight / 2;
+          const guideW = 180;
+          const guideH = 240;
+
+          ctx.strokeStyle = '#6B7280';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([8, 4]);
+          ctx.beginPath();
+          ctx.roundRect(centerX - guideW/2, centerY - guideH/2, guideW, guideH, 20);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      } catch (error) {
+        console.error('Erreur detection:', error);
+      }
+
+      animationRef.current = requestAnimationFrame(detectFace);
+    };
+
+    animationRef.current = requestAnimationFrame(detectFace);
+
+    return () => {
+      isRunning = false;
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [cameraActive, modelsLoaded, storedDescriptor, analyzeQuality, generateFeedback, facialVerified, stopCamera]);
+
+  // Soumettre pointage
+  const submitCheckIn = async (type) => {
+    if (!facialVerified || !location) {
+      toast.error('Validations incompletes');
+      return;
+    }
+
+    setSubmitting(true);
+    setCheckInType(type);
+
+    try {
+      const data = {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        accuracy: locationAccuracy,
+        deviceFingerprint,
+        deviceInfo,
+        facialMatchScore: matchScore / 100
+      };
+
+      let response;
+      if (type === 'in') {
+        response = await attendanceAPI.checkIn(data);
+      } else {
+        const todayStatus = await attendanceAPI.getTodayStatus();
+        if (todayStatus.data.data?.attendanceId) {
+          response = await attendanceAPI.checkOut(todayStatus.data.data.attendanceId, data);
+        } else {
+          throw new Error('Aucun pointage d\'entree trouve');
+        }
+      }
+
+      if (response.data.success) {
+        setCheckInSuccess(true);
+        toast.success(type === 'in' ? 'Entree enregistree!' : 'Sortie enregistree!');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message || 'Erreur');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Deconnexion
+  const handleLogout = () => {
+    localStorage.removeItem('checkInToken');
+    localStorage.removeItem('checkInUser');
+    stopCamera();
+    navigate('/login');
+  };
+
+  // Reset pour nouveau pointage
+  const resetForNew = () => {
+    setCheckInSuccess(false);
+    setCheckInType(null);
+    setFacialVerified(false);
+    setCaptureProgress(0);
+    setValidations(prev => ({
+      ...prev,
+      facial: { status: 'pending', message: 'En attente' }
+    }));
+    requestLocation();
+  };
+
+  // Ecran de succes
+  if (checkInSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 flex items-center justify-center p-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
+          <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <FiCheck className="text-white" size={48} />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            {checkInType === 'in' ? 'Entree enregistree!' : 'Sortie enregistree!'}
+          </h1>
+          <p className="text-4xl font-bold text-green-600 mb-2">
+            {currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+          <p className="text-gray-500 mb-6">
+            {currentTime.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+
+          <div className="space-y-3">
+            <button
+              onClick={resetForNew}
+              className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            >
+              Nouveau pointage
+            </button>
+            <button
+              onClick={handleLogout}
+              className="w-full py-4 bg-gray-100 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+            >
+              <FiLogOut size={18} />
+              Deconnexion
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900">
+      {/* Header mobile */}
+      <header className="bg-white/10 backdrop-blur-lg border-b border-white/10">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold shadow-lg">
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </div>
+            <div>
+              <p className="font-semibold text-white">{user?.firstName} {user?.lastName}</p>
+              <p className="text-xs text-white/60">{user?.employeeId}</p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="p-3 text-white/70 hover:text-red-400 hover:bg-white/10 rounded-xl transition-all"
+          >
+            <FiLogOut size={20} />
+          </button>
+        </div>
+      </header>
+
+      {/* Horloge */}
+      <div className="text-center py-4">
+        <p className="text-5xl font-bold text-white">
+          {currentTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+        </p>
+        <p className="text-white/60 text-sm mt-1">
+          {currentTime.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+        </p>
+      </div>
+
+      {/* Zone Camera / Reconnaissance faciale */}
+      <div className="px-4 pb-4">
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/10">
+          {!cameraActive ? (
+            <div className="aspect-[3/4] flex flex-col items-center justify-center p-6">
+              <div className="w-32 h-32 rounded-full bg-white/10 flex items-center justify-center mb-6">
+                <FiCamera className="text-white/50" size={56} />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Reconnaissance faciale</h3>
+              <p className="text-white/60 text-center text-sm mb-6">
+                {modelsLoading ? 'Chargement des modeles...' :
+                 facialVerified ? 'Verification reussie!' : 'Activez la camera pour verifier votre identite'}
+              </p>
+
+              {facialVerified ? (
+                <div className="flex items-center gap-2 px-6 py-3 bg-green-500/20 text-green-400 rounded-full">
+                  <FiCheckCircle size={20} />
+                  <span className="font-medium">Identite verifiee ({Math.round(matchScore)}%)</span>
+                </div>
+              ) : (
+                <button
+                  onClick={startCamera}
+                  disabled={modelsLoading || !modelsLoaded}
+                  className="px-8 py-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-2xl font-semibold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                >
+                  {modelsLoading ? (
+                    <>
+                      <FiLoader className="animate-spin" size={20} />
+                      Chargement...
+                    </>
+                  ) : (
+                    <>
+                      <FiCamera size={20} />
+                      Activer la camera
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="relative aspect-[3/4]">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              <canvas
+                ref={canvasRef}
+                className="absolute inset-0 w-full h-full"
+              />
+
+              {/* Overlay gradient bas */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
+                {/* Indicateurs */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${
+                      quality?.isGood && isMatched ? 'bg-green-500 animate-pulse' :
+                      faceDetected ? 'bg-yellow-500' : 'bg-red-500'
+                    }`} />
+                    <span className="text-white text-sm font-medium">
+                      {quality?.isGood && isMatched ? 'Pret' : faceDetected ? 'Ajustement...' : 'Aucun visage'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className={`text-sm font-bold ${
+                      matchScore >= 70 ? 'text-green-400' : matchScore >= 50 ? 'text-yellow-400' : 'text-red-400'
+                    }`}>
+                      {Math.round(matchScore)}% match
+                    </span>
+                    <span className="text-white/70 text-sm">
+                      Q: {quality?.score || 0}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Barre de progression */}
+                <div className="mb-3">
+                  <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-200"
+                      style={{ width: `${captureProgress}%` }}
+                    />
+                  </div>
+                  {captureProgress > 0 && (
+                    <p className="text-center text-green-400 text-xs mt-1 font-medium">
+                      Maintenir la position... {Math.round(captureProgress)}%
+                    </p>
+                  )}
+                </div>
+
+                {/* Feedback */}
+                <div className="space-y-1">
+                  {feedback.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex items-center gap-2 text-sm ${
+                        item.type === 'success' ? 'text-green-400' :
+                        item.type === 'warning' ? 'text-yellow-400' : 'text-red-400'
+                      }`}
+                    >
+                      {item.icon && <item.icon size={14} />}
+                      <span>{item.message}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bouton annuler */}
+              <button
+                onClick={stopCamera}
+                className="absolute top-4 right-4 p-3 bg-black/50 text-white rounded-full hover:bg-black/70 transition-all"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Statut validations */}
+      <div className="px-4 pb-4">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 border border-white/10">
+          <div className="grid grid-cols-3 gap-3">
+            {/* Facial */}
+            <div className={`text-center p-3 rounded-xl ${
+              validations.facial.status === 'success' ? 'bg-green-500/20' :
+              validations.facial.status === 'loading' ? 'bg-blue-500/20' : 'bg-white/5'
+            }`}>
+              <div className={`w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                validations.facial.status === 'success' ? 'bg-green-500' :
+                validations.facial.status === 'loading' ? 'bg-blue-500' : 'bg-white/20'
+              }`}>
+                {validations.facial.status === 'success' ? <FiCheck className="text-white" size={18} /> :
+                 validations.facial.status === 'loading' ? <FiLoader className="text-white animate-spin" size={18} /> :
+                 <FiUser className="text-white/50" size={18} />}
+              </div>
+              <p className="text-white/80 text-xs font-medium">Visage</p>
+            </div>
+
+            {/* Location */}
+            <div className={`text-center p-3 rounded-xl ${
+              validations.location.status === 'success' || validations.location.status === 'warning' ? 'bg-green-500/20' :
+              validations.location.status === 'loading' ? 'bg-blue-500/20' : 'bg-white/5'
+            }`}>
+              <div className={`w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                validations.location.status === 'success' || validations.location.status === 'warning' ? 'bg-green-500' :
+                validations.location.status === 'loading' ? 'bg-blue-500' : 'bg-white/20'
+              }`}>
+                {validations.location.status === 'success' || validations.location.status === 'warning' ?
+                 <FiCheck className="text-white" size={18} /> :
+                 validations.location.status === 'loading' ? <FiLoader className="text-white animate-spin" size={18} /> :
+                 <FiMapPin className="text-white/50" size={18} />}
+              </div>
+              <p className="text-white/80 text-xs font-medium">Position</p>
+            </div>
+
+            {/* Device */}
+            <div className="text-center p-3 rounded-xl bg-green-500/20">
+              <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center bg-green-500">
+                <FiCheck className="text-white" size={18} />
+              </div>
+              <p className="text-white/80 text-xs font-medium">Appareil</p>
+            </div>
+          </div>
+
+          {/* Actualiser position */}
+          {validations.location.status !== 'loading' && (
+            <button
+              onClick={requestLocation}
+              className="w-full mt-3 py-2 text-white/60 text-sm flex items-center justify-center gap-2 hover:text-white transition-all"
+            >
+              <FiRefreshCw size={14} />
+              Actualiser la position
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Boutons pointage */}
+      <div className="px-4 pb-8">
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            onClick={() => submitCheckIn('in')}
+            disabled={submitting || !facialVerified || !location}
+            className="py-5 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-2xl font-bold text-lg shadow-lg shadow-green-500/30 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all flex items-center justify-center gap-2"
+          >
+            {submitting && checkInType === 'in' ? (
+              <FiLoader className="animate-spin" size={22} />
+            ) : (
+              <FiNavigation size={22} />
+            )}
+            Entree
+          </button>
+          <button
+            onClick={() => submitCheckIn('out')}
+            disabled={submitting || !facialVerified || !location}
+            className="py-5 bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-2xl font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all flex items-center justify-center gap-2"
+          >
+            {submitting && checkInType === 'out' ? (
+              <FiLoader className="animate-spin" size={22} />
+            ) : (
+              <FiLogOut size={22} />
+            )}
+            Sortie
+          </button>
+        </div>
+      </div>
+
+      {/* Footer info appareil */}
+      <div className="text-center pb-4">
+        <p className="text-white/40 text-xs flex items-center justify-center gap-1">
+          <FiSmartphone size={12} />
+          {deviceInfo?.browser} sur {deviceInfo?.os}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default CheckIn;

@@ -1,0 +1,54 @@
+{
+  "expo": {
+    "name": "Security Guard Mobile",
+    "slug": "security-guard-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2563eb"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.securityguard.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Cette application utilise la caméra pour la reconnaissance faciale lors du pointage.",
+        "NSLocationWhenInUseUsageDescription": "Cette application utilise votre position pour vérifier votre présence sur le lieu de travail.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Cette application utilise votre position pour vérifier votre présence sur le lieu de travail."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2563eb"
+      },
+      "package": "com.securityguard.mobile",
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Autoriser l'accès à la caméra pour le pointage facial"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Autoriser l'accès à la position pour le pointage"
+        }
+      ]
+    ]
+  }
+}

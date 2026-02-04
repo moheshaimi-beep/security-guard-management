@@ -1,0 +1,814 @@
+/**
+ * Controleur de Tracking GPS
+ * Gere le suivi en temps reel des agents
+ */
+
+const { GeoTracking, User, Event, FraudAttempt, Assignment } = require('../models');
+const { Op } = require('sequelize');
+const geoService = require('../services/geoService');
+const { logActivity } = require('../middlewares/activityLogger');
+
+// Configuration Tracking
+const TRACKING_CONFIG = {
+  maxAccuracy: 100,               // Precision max acceptee (metres)
+  maxSpeed: 150,                  // Vitesse max raisonnable (km/h)
+  teleportThreshold: 500,         // Seuil teleportation (km/h)
+  staleLocationMinutes: 15,       // Position consideree obsolete apres X minutes
+  outOfZoneAlertThreshold: 3      // Alertes avant escalade
+};
+
+/**
+ * Enregistrer une nouvelle position GPS
+ */
+exports.recordLocation = async (req, res) => {
+  try {
+    const {
+      latitude,
+      longitude,
+      accuracy,
+      altitude,
+      speed,
+      heading,
+      batteryLevel,
+      isMockLocation,
+      networkType,
+      cellTowerInfo,
+      eventId
+    } = req.body;
+
+    const userId = req.user.id;
+
+    // Validation des coordonnees
+    if (!geoService.isValidCoordinate(latitude, longitude)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Coordonnees GPS invalides'
+      });
+    }
+
+    // Detection GPS spoofing - Mock location
+    if (isMockLocation) {
+      await FraudAttempt.record({
+        userId,
+        eventId,
+        attemptType: 'gps_spoofing',
+        severity: 'high',
+        description: 'Location simulee detectee',
+        details: { latitude, longitude, accuracy },
+        latitude,
+        longitude,
+        ipAddress: req.ip
+      });
+
+      return res.status(403).json({
+        success: false,
+        message: 'Position GPS non autorisee',
+        error: 'mock_location_detected'
+      });
+    }
+
+    // Detection teleportation
+    const spoofingCheck = await GeoTracking.detectSpoofing(userId, {
+      latitude,
+      longitude,
+      recordedAt: new Date()
+    });
+
+    if (spoofingCheck.isSpoofed) {
+      await FraudAttempt.record({
+        userId,
+        eventId,
+        attemptType: 'gps_spoofing',
+        severity: 'critical',
+        description: 'Teleportation detectee',
+        details: spoofingCheck,
+        latitude,
+        longitude,
+        ipAddress: req.ip
+      });
+
+      // Ne pas bloquer completement, mais logger
+      console.warn(`[FRAUD] Teleportation detected for user ${userId}: ${spoofingCheck.calculatedSpeed} km/h`);
+    }
+
+    // Verifier le geofencing si evenement specifie
+    let isWithinGeofence = true;
+    let distanceFromEvent = null;
+    let alerts = [];
+
+    if (eventId) {
+      const event = await Event.findByPk(eventId);
+      if (event && event.latitude && event.longitude) {
+        const distance = geoService.calculateDistance(
+          latitude,
+          longitude,
+          parseFloat(event.latitude),
+          parseFloat(event.longitude)
+        );
+
+        distanceFromEvent = Math.round(distance);
+        isWithinGeofence = distance <= (event.geoRadius || 100);
+
+        if (!isWithinGeofence) {
+          alerts.push({
+            type: 'out_of_zone',
+            message: `Agent hors zone (${distanceFromEvent}m)`,
+            distance: distanceFromEvent,
+            allowedRadius: event.geoRadius || 100
+          });
+
+          // Enregistrer tentative hors zone
+          await FraudAttempt.record({
+            userId,
+            eventId,
+            attemptType: 'out_of_zone',
+            severity: 'medium',
+            description: `Agent a ${distanceFromEvent}m de la zone autorisee`,
+            details: { distance: distanceFromEvent, allowedRadius: event.geoRadius },
+            latitude,
+            longitude,
+            ipAddress: req.ip
+          });
+        }
+      }
+    }
+
+    // Enregistrer la position
+    const tracking = await GeoTracking.create({
+      userId,
+      eventId,
+      latitude,
+      longitude,
+      accuracy,
+      altitude,
+      speed,
+      heading,
+      batteryLevel,
+      isMockLocation: isMockLocation || false,
+      networkType,
+      cellTowerInfo,
+      isWithinGeofence,
+      distanceFromEvent,
+      recordedAt: new Date()
+    });
+
+    // Mettre a jour la position actuelle de l'utilisateur
+    await User.update(
+      {
+        currentLatitude: latitude,
+        currentLongitude: longitude,
+        lastLocationUpdate: new Date()
+      },
+      { where: { id: userId } }
+    );
+
+    // Broadcast via Socket.IO
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`role:admin`).to(`role:supervisor`).emit('agent:location', {
+        userId,
+        eventId,
+        latitude,
+        longitude,
+        accuracy,
+        speed,
+        isWithinGeofence,
+        distanceFromEvent,
+        batteryLevel,
+        timestamp: new Date()
+      });
+
+      if (eventId) {
+        io.to(`event-${eventId}`).emit('agent:location', {
+          userId,
+          latitude,
+          longitude,
+          isWithinGeofence,
+          timestamp: new Date()
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        recorded: true,
+        isWithinGeofence,
+        distanceFromEvent,
+        alerts: alerts.length > 0 ? alerts : undefined
+      }
+    });
+
+  } catch (error) {
+    console.error('Record location error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'enregistrement de la position'
+    });
+  }
+};
+
+/**
+ * Obtenir l'historique des positions d'un utilisateur
+ */
+exports.getUserHistory = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { startDate, endDate, eventId, limit = 1000 } = req.query;
+
+    // Verifier les permissions
+    if (req.user.role === 'agent' && req.user.id !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Acces non autorise'
+      });
+    }
+
+    const where = { userId };
+
+    if (startDate && endDate) {
+      where.recordedAt = {
+        [Op.between]: [new Date(startDate), new Date(endDate)]
+      };
+    }
+
+    if (eventId) {
+      where.eventId = eventId;
+    }
+
+    const tracks = await GeoTracking.findAll({
+      where,
+      order: [['recordedAt', 'DESC']],
+      limit: parseInt(limit),
+      attributes: [
+        'id', 'latitude', 'longitude', 'accuracy', 'speed',
+        'heading', 'isWithinGeofence', 'distanceFromEvent',
+        'batteryLevel', 'recordedAt'
+      ]
+    });
+
+    // Calculer les statistiques
+    const stats = {
+      totalPoints: tracks.length,
+      outOfZoneCount: tracks.filter(t => !t.isWithinGeofence).length,
+      avgAccuracy: tracks.length > 0
+        ? tracks.reduce((sum, t) => sum + (t.accuracy || 0), 0) / tracks.length
+        : 0,
+      maxSpeed: Math.max(...tracks.map(t => t.speed || 0)),
+      totalDistance: this.calculateTotalDistance(tracks)
+    };
+
+    res.json({
+      success: true,
+      data: {
+        tracks: tracks.reverse(), // Ordre chronologique
+        stats
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la recuperation de l\'historique'
+    });
+  }
+};
+
+/**
+ * Calculer la distance totale parcourue
+ */
+exports.calculateTotalDistance = (tracks) => {
+  if (tracks.length < 2) return 0;
+
+  let totalDistance = 0;
+  for (let i = 1; i < tracks.length; i++) {
+    totalDistance += geoService.calculateDistance(
+      parseFloat(tracks[i-1].latitude),
+      parseFloat(tracks[i-1].longitude),
+      parseFloat(tracks[i].latitude),
+      parseFloat(tracks[i].longitude)
+    );
+  }
+
+  return Math.round(totalDistance);
+};
+
+/**
+ * Obtenir les positions en temps reel pour un evenement
+ */
+exports.getEventLivePositions = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Verifier que l'evenement existe
+    const event = await Event.findByPk(eventId);
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Evenement non trouve'
+      });
+    }
+
+    // Obtenir les agents assignes a l'evenement
+    const assignments = await Assignment.findAll({
+      where: {
+        eventId,
+        status: { [Op.in]: ['confirmed', 'pending'] }
+      },
+      include: [{
+        model: User,
+        as: 'agent',
+        attributes: [
+          'id', 'employeeId', 'firstName', 'lastName',
+          'profilePhoto', 'phone', 'currentLatitude',
+          'currentLongitude', 'lastLocationUpdate', 'status'
+        ]
+      }]
+    });
+
+    // Formater les donnees
+    const agents = assignments.map(a => {
+      const agent = a.agent;
+      const isOnline = agent.lastLocationUpdate &&
+        (new Date() - new Date(agent.lastLocationUpdate)) < TRACKING_CONFIG.staleLocationMinutes * 60 * 1000;
+
+      let distance = null;
+      let isWithinGeofence = null;
+
+      if (agent.currentLatitude && agent.currentLongitude && event.latitude && event.longitude) {
+        distance = geoService.calculateDistance(
+          parseFloat(agent.currentLatitude),
+          parseFloat(agent.currentLongitude),
+          parseFloat(event.latitude),
+          parseFloat(event.longitude)
+        );
+        isWithinGeofence = distance <= (event.geoRadius || 100);
+      }
+
+      return {
+        id: agent.id,
+        employeeId: agent.employeeId,
+        name: `${agent.firstName} ${agent.lastName}`,
+        photo: agent.profilePhoto,
+        phone: agent.phone,
+        position: agent.currentLatitude ? {
+          latitude: parseFloat(agent.currentLatitude),
+          longitude: parseFloat(agent.currentLongitude),
+          updatedAt: agent.lastLocationUpdate
+        } : null,
+        isOnline,
+        isWithinGeofence,
+        distance: distance ? Math.round(distance) : null,
+        assignmentStatus: a.status
+      };
+    });
+
+    // Alertes actives
+    const alerts = [];
+    agents.forEach(agent => {
+      if (agent.isOnline && agent.isWithinGeofence === false) {
+        alerts.push({
+          type: 'out_of_zone',
+          agentId: agent.id,
+          agentName: agent.name,
+          distance: agent.distance,
+          message: `${agent.name} est hors zone (${agent.distance}m)`
+        });
+      }
+      if (!agent.isOnline && agent.position) {
+        alerts.push({
+          type: 'offline',
+          agentId: agent.id,
+          agentName: agent.name,
+          lastSeen: agent.position?.updatedAt,
+          message: `${agent.name} hors ligne`
+        });
+      }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        event: {
+          id: event.id,
+          name: event.name,
+          location: event.location,
+          latitude: parseFloat(event.latitude),
+          longitude: parseFloat(event.longitude),
+          geoRadius: event.geoRadius || 100
+        },
+        agents,
+        alerts,
+        stats: {
+          total: agents.length,
+          online: agents.filter(a => a.isOnline).length,
+          withinZone: agents.filter(a => a.isWithinGeofence).length,
+          outOfZone: agents.filter(a => a.isWithinGeofence === false).length
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get event live positions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la recuperation des positions'
+    });
+  }
+};
+
+/**
+ * Valider si une position est dans la zone d'un evenement
+ */
+exports.validatePosition = async (req, res) => {
+  try {
+    const { latitude, longitude, eventId } = req.body;
+
+    if (!geoService.isValidCoordinate(latitude, longitude)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Coordonnees invalides'
+      });
+    }
+
+    const event = await Event.findByPk(eventId);
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Evenement non trouve'
+      });
+    }
+
+    if (!event.latitude || !event.longitude) {
+      return res.status(400).json({
+        success: false,
+        message: 'L\'evenement n\'a pas de coordonnees definies'
+      });
+    }
+
+    const distance = geoService.calculateDistance(
+      latitude,
+      longitude,
+      parseFloat(event.latitude),
+      parseFloat(event.longitude)
+    );
+
+    const isValid = distance <= (event.geoRadius || 100);
+    const direction = geoService.getDirection(
+      latitude,
+      longitude,
+      parseFloat(event.latitude),
+      parseFloat(event.longitude)
+    );
+
+    res.json({
+      success: true,
+      data: {
+        isValid,
+        distance: Math.round(distance),
+        allowedRadius: event.geoRadius || 100,
+        direction,
+        message: isValid
+          ? 'Position valide'
+          : `Vous etes a ${Math.round(distance)}m de la zone (max ${event.geoRadius || 100}m)`
+      }
+    });
+
+  } catch (error) {
+    console.error('Validate position error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la validation de la position'
+    });
+  }
+};
+
+/**
+ * Obtenir toutes les positions en temps reel (admin)
+ */
+exports.getAllLivePositions = async (req, res) => {
+  try {
+    // Admin seulement
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Acces reserve aux administrateurs'
+      });
+    }
+
+    const agents = await User.findAll({
+      where: {
+        role: { [Op.in]: ['agent', 'supervisor'] },
+        status: 'active',
+        currentLatitude: { [Op.ne]: null }
+      },
+      attributes: [
+        'id', 'employeeId', 'firstName', 'lastName',
+        'profilePhoto', 'role', 'currentLatitude',
+        'currentLongitude', 'lastLocationUpdate'
+      ],
+      include: [{
+        model: User,
+        as: 'supervisor',
+        attributes: ['id', 'firstName', 'lastName']
+      }]
+    });
+
+    const now = new Date();
+    const formattedAgents = agents.map(agent => ({
+      id: agent.id,
+      employeeId: agent.employeeId,
+      name: `${agent.firstName} ${agent.lastName}`,
+      role: agent.role,
+      photo: agent.profilePhoto,
+      supervisor: agent.supervisor ? `${agent.supervisor.firstName} ${agent.supervisor.lastName}` : null,
+      position: {
+        latitude: parseFloat(agent.currentLatitude),
+        longitude: parseFloat(agent.currentLongitude)
+      },
+      lastUpdate: agent.lastLocationUpdate,
+      isOnline: (now - new Date(agent.lastLocationUpdate)) < TRACKING_CONFIG.staleLocationMinutes * 60 * 1000
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        agents: formattedAgents,
+        stats: {
+          total: formattedAgents.length,
+          online: formattedAgents.filter(a => a.isOnline).length,
+          offline: formattedAgents.filter(a => !a.isOnline).length
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get all live positions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la recuperation des positions'
+    });
+  }
+};
+
+/**
+ * Obtenir toutes les positions temps réel pour un événement
+ */
+exports.getRealtimePositions = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // Récupérer l'événement avec ses coordonnées
+    const event = await Event.findByPk(eventId);
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Événement non trouvé'
+      });
+    }
+
+    // Récupérer les agents assignés à cet événement
+    const assignments = await Assignment.findAll({
+      where: {
+        eventId,
+        status: { [Op.in]: ['confirmed', 'accepted', 'checked_in'] }
+      },
+      include: [{
+        model: User,
+        as: 'agent',
+        attributes: ['id', 'employeeId', 'firstName', 'lastName', 'profilePhoto', 'role']
+      }]
+    });
+
+    const userIds = assignments.map(a => a.agentId);
+
+    // Ajouter le superviseur de l'événement s'il existe
+    if (event.supervisorId && !userIds.includes(event.supervisorId)) {
+      userIds.push(event.supervisorId);
+      console.log(`✅ Superviseur ${event.supervisorId} ajouté au suivi`);
+    }
+
+    // Si aucun utilisateur à suivre, retourner vide
+    if (userIds.length === 0) {
+      console.log('Aucun agent ou superviseur assigné à cet événement');
+      return res.json({
+        success: true,
+        positions: [],
+        event: {
+          id: event.id,
+          name: event.name,
+          latitude: event.latitude,
+          longitude: event.longitude,
+          geoRadius: event.geoRadius || 100
+        }
+      });
+    }
+
+    console.log(`${userIds.length} personne(s) à suivre (agents + superviseur), recherche des positions GPS...`);
+
+    // Récupérer les dernières positions pour chaque utilisateur
+    // Utiliser une sous-requête pour obtenir la dernière position de chaque user
+    const latestPositions = await GeoTracking.findAll({
+      where: {
+        userId: { [Op.in]: userIds }
+      },
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'employeeId', 'firstName', 'lastName', 'profilePhoto', 'role'],
+        required: true
+      }],
+      order: [['recordedAt', 'DESC']],
+      limit: 1000 // Récupérer plus pour filtrer après
+    });
+
+    // Filtrer pour garder seulement la dernière position par utilisateur
+    const userLatestMap = {};
+    latestPositions.forEach(pos => {
+      if (!userLatestMap[pos.userId] || 
+          new Date(pos.recordedAt) > new Date(userLatestMap[pos.userId].recordedAt)) {
+        userLatestMap[pos.userId] = pos;
+      }
+    });
+
+    const positions = Object.values(userLatestMap);
+
+    // Enrichir avec les calculs de distance et géofencing
+    const enrichedPositions = positions.map(pos => {
+      let isInsideGeofence = true;
+      let distanceFromEvent = null;
+
+      if (event.latitude && event.longitude) {
+        const distance = geoService.calculateDistance(
+          parseFloat(pos.latitude),
+          parseFloat(pos.longitude),
+          parseFloat(event.latitude),
+          parseFloat(event.longitude)
+        );
+        distanceFromEvent = Math.round(distance);
+        isInsideGeofence = distance <= (event.geoRadius || 100);
+      }
+
+      return {
+        id: pos.id,
+        userId: pos.userId,
+        latitude: parseFloat(pos.latitude),
+        longitude: parseFloat(pos.longitude),
+        accuracy: pos.accuracy,
+        speed: pos.speed,
+        heading: pos.heading,
+        batteryLevel: pos.batteryLevel,
+        isInsideGeofence,
+        distanceFromEvent,
+        createdAt: pos.recordedAt,
+        user: pos.user
+      };
+    });
+
+    res.json({
+      success: true,
+      positions: enrichedPositions,
+      event: {
+        id: event.id,
+        name: event.name,
+        latitude: event.latitude,
+        longitude: event.longitude,
+        geoRadius: event.geoRadius || 100
+      }
+    });
+
+  } catch (error) {
+    console.error('Get realtime positions error:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des positions',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Obtenir les alertes de tracking
+ */
+exports.getTrackingAlerts = async (req, res) => {
+  try {
+    const { eventId, isResolved, severity, limit = 50 } = req.query;
+
+    const where = {};
+    if (eventId) where.eventId = eventId;
+    // Note: isResolved column doesn't exist yet, skip this filter
+    // if (isResolved !== undefined) where.isResolved = isResolved === 'true';
+    if (severity) where.severity = severity;
+
+    const alerts = await FraudAttempt.findAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      limit: parseInt(limit),
+      attributes: { 
+        exclude: ['isResolved', 'resolvedAt', 'resolvedBy', 'resolution'] // Exclude columns that don't exist in DB yet
+      },
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'employeeId', 'firstName', 'lastName', 'profilePhoto'],
+        required: false
+      }, {
+        model: Event,
+        as: 'event',
+        attributes: ['id', 'name', 'latitude', 'longitude', 'geoRadius'],
+        required: false
+      }]
+    });
+
+    // Formater les alertes
+    const formattedAlerts = alerts.map(alert => ({
+      id: alert.id,
+      alertType: alert.attemptType,
+      title: getAlertTitle(alert.attemptType),
+      message: alert.description,
+      severity: mapSeverityToAlert(alert.severity),
+      latitude: alert.latitude ? parseFloat(alert.latitude) : null,
+      longitude: alert.longitude ? parseFloat(alert.longitude) : null,
+      distanceFromZone: alert.details?.distance || null,
+      isResolved: false, // Column doesn't exist yet, default to false
+      resolvedAt: null,  // Column doesn't exist yet
+      createdAt: alert.createdAt,
+      user: alert.user,
+      event: alert.event
+    }));
+
+    res.json({
+      success: true,
+      alerts: formattedAlerts
+    });
+
+  } catch (error) {
+    console.error('Get tracking alerts error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des alertes',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Résoudre une alerte
+ */
+exports.resolveAlert = async (req, res) => {
+  try {
+    const { alertId } = req.params;
+    const { resolution } = req.body;
+
+    const alert = await FraudAttempt.findByPk(alertId);
+    if (!alert) {
+      return res.status(404).json({
+        success: false,
+        message: 'Alerte non trouvée'
+      });
+    }
+
+    await alert.update({
+      isResolved: true,
+      resolvedAt: new Date(),
+      resolvedBy: req.user.id,
+      resolution: resolution || 'Résolu par administrateur'
+    });
+
+    res.json({
+      success: true,
+      message: 'Alerte résolue avec succès'
+    });
+
+  } catch (error) {
+    console.error('Resolve alert error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la résolution de l\'alerte'
+    });
+  }
+};
+
+// Helper functions
+function getAlertTitle(alertType) {
+  const titles = {
+    'gps_spoofing': 'GPS Spoofing détecté',
+    'out_of_zone': 'Agent hors zone',
+    'late_arrival': 'Retard',
+    'low_battery': 'Batterie faible',
+    'connection_lost': 'Connexion perdue'
+  };
+  return titles[alertType] || 'Alerte';
+}
+
+function mapSeverityToAlert(severity) {
+  const mapping = {
+    'critical': 'critical',
+    'high': 'critical',
+    'medium': 'warning',
+    'low': 'info'
+  };
+  return mapping[severity] || 'info';
+}

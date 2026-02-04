@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: security-guard-backend
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: SOCKET_CORS_ORIGIN
+        sync: false
+
+databases:
+  - name: security-guard-db
+    plan: free
+    databaseName: security_guard_db
+    user: admin

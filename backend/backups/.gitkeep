@@ -1,0 +1,2 @@
+# Ce fichier permet de garder le dossier backups dans Git
+# Les fichiers .sql de backup seront ignorés par .gitignore
